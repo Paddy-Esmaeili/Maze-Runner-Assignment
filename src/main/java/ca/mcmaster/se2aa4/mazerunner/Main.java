@@ -38,7 +38,7 @@ public class Main {
                         System.out.print("PASS ");
                     }
                 }
-                logger.debug(mazeLine.toString());
+                logger.debug(System.lineSeparator());
             }
         } catch(Exception e) {
             logger.error("/!\\ An error has occured /!\\", e);
