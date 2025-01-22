@@ -38,11 +38,7 @@ public class Main {
                         logger.trace("PASS ");
                     }
                 }
-<<<<<<< HEAD
                 logger.trace(System.lineSeparator());
-=======
-                logger.debug(System.lineSeparator());
->>>>>>> 34ae255e3a62d37828ac3e06c5b9118c978c66b2
             }
         } catch(Exception e) {
             logger.error("/!\\ An error has occured /!\\");
