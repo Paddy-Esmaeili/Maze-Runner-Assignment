@@ -95,5 +95,74 @@ class Maze {
             throw new IllegalArgumentException("First and last rows of the maze cannot contain empty spaces.");
         }
     
+        int entryX = -1, entryY = -1, exitX = -1, exitY = -1;
+    
+        for (int i = 0; i < grid.length; i++) {
+            if (grid[i][0] == ' ' || Character.isWhitespace(grid[i][0])) {
+                entryX = i;
+                entryY = 0;
+            }
+        }
+
+        for (int i = 0; i < grid.length; i++) {
+            int cols = grid[i].length - 1;
+            char lastColumnChar = grid[i][cols];
+
+            if (lastColumnChar == ' ' || Character.isWhitespace(lastColumnChar)) {
+                exitX = i;
+                exitY = grid[i].length - 1;
+            }
+        }
+        
+        if (entryX == -1 || entryY == -1) {
+            throw new IllegalArgumentException("Maze must have valid entry points.");
+        } 
+        if (exitX == -1 || exitY == -1){
+            throw new IllegalArgumentException("Maze must have valid exit points.");
+        }
+        
+        return new Maze(grid, entryX, entryY, exitX, exitY);
     }
+
+    private static boolean containsEmptySpace(char[] row) {
+        for (char c : row) {
+            if (c == ' ') {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public char[][] getGrid() {
+        return grid;
+    }
+
+    public int getEntryX() {
+        return entryX;
+    }
+
+    public int getEntryY() {
+        return entryY;
+    }
+
+    public int getExitX() {
+        return exitX;
+    }
+
+    public int getExitY() {
+        return exitY;
+    }
+
+    public int getHeight() {
+        return grid.length;
+    }
+
+    public int getWidth() {
+        return grid[0].length;
+    }
+
+    public boolean isWall(int x, int y) {
+        return x >= 0 && x < grid.length && y >= 0 && y < grid[x].length && grid[x][y] == '#';
+    }
+    
 }
