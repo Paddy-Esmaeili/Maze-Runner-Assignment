@@ -35,17 +35,21 @@ public class Main {
             Maze maze = Maze.loadMazeFromFile(inputFile);
             logger.info("**** Reading the maze from file: {}", inputFile);
 
+            SimplePathGenerator simpleGenerator = new SimplePathGenerator();
+            String canonicalPath = simpleGenerator.findPath(maze);
+
             if (validInput != null) {
                 logger.info("**** Validating path");
                 PathValidator validator = new PathValidator();
                 if (validator.checkPath(maze, validInput)) {
                     logger.info("correct path");
                 } else {
-                    logger.info("incorrect path.");
+                    logger.info("incorrect path");
                 }
             }
 
-
+            logger.info("**** Computing path");
+            logger.info("Canonical Path: {}", canonicalPath);
 
         } catch (Exception e) {
             logger.error("An error occurred", e);
@@ -88,14 +92,20 @@ class Maze {
                 break;
             }
         }
+
+        System.out.println(entryX + "," + entryY);
+        
         //detect exit points
         for (int i = 0; i < grid.length; i++) {
-            if (grid[i][grid[i].length - 1] == ' ') {
+            if (grid[i][grid[i].length-1] == ' ') {
                 exitX = i;
-                exitY = grid[i].length - 1;
-                break;
+                exitY = grid.length-1;
             }
         }
+
+        //debugging 
+        System.out.println(exitX + "," + exitY);
+        System.out.println(grid.length);
 
         if (entryX == -1 || entryY == -1) {
             throw new IllegalArgumentException("Maze must have a valid entry point on the left side.");
@@ -133,6 +143,50 @@ class Maze {
 
     public boolean isExit(int x, int y) {
         return x == exitX && y == exitY;
+    }
+}
+
+class SimplePathGenerator {
+    public String findPath(Maze maze) {
+        StringBuilder path = new StringBuilder();
+        int x = maze.getEntryX();
+        int y = maze.getEntryY();
+        int targetX = maze.getExitX();
+        int targetY = maze.getExitY();
+
+        for (char[] row : maze.getGrid()) {
+            System.out.println(new String(row));
+        }
+
+        while (x != targetX || y != targetY) {
+            // Move forward facing East
+            if (y < targetY && y + 1 < maze.getGrid()[x].length && !maze.isWall(x, y + 1)) {
+                path.append("F");
+                //debugging
+                System.out.println(path.toString());
+                y++;
+            }
+            // Move right facing East
+            else if (x < targetX && x + 1 < maze.getGrid().length && !maze.isWall(x + 1, y)) {
+                path.append("R");
+                //debugging
+                System.out.println(path.toString());
+                x++;
+            }
+            // Move left facing East
+            else if (x > targetX && x - 1 >= 0 && !maze.isWall(x - 1, y)) {
+                path.append("L");
+                 //debugging
+                System.out.println(path.toString());
+                x--;
+            }
+        }
+
+        //debugging 
+        System.out.println("Path to exit: " + path.toString());
+        
+        //return path as a string
+        return path.toString();
     }
 }
 
