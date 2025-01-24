@@ -92,8 +92,6 @@ class Maze {
                 break;
             }
         }
-
-        System.out.println(entryX + "," + entryY);
         
         //detect exit points
         for (int i = 0; i < grid.length; i++) {
@@ -102,10 +100,6 @@ class Maze {
                 exitY = grid.length-1;
             }
         }
-
-        //debugging 
-        System.out.println(exitX + "," + exitY);
-        System.out.println(grid.length);
 
         if (entryX == -1 || entryY == -1) {
             throw new IllegalArgumentException("Maze must have a valid entry point on the left side.");
@@ -137,10 +131,12 @@ class Maze {
         return exitY;
     }
 
+    //check where the walls are
     public boolean isWall(int x, int y) {
         return grid[x][y] == '#';
     }
 
+    //check if it reached the exit point
     public boolean isExit(int x, int y) {
         return x == exitX && y == exitY;
     }
@@ -149,47 +145,58 @@ class Maze {
 class SimplePathGenerator {
     public String findPath(Maze maze) {
         StringBuilder path = new StringBuilder();
+        boolean[][] visited = new boolean[maze.getGrid().length][maze.getGrid()[0].length];   //cells that were visited before
+
         int x = maze.getEntryX();
         int y = maze.getEntryY();
-        int targetX = maze.getExitX();
-        int targetY = maze.getExitY();
 
-        for (char[] row : maze.getGrid()) {
-            System.out.println(new String(row));
+        if (findPathRecursive(maze, x, y, visited, path)) {
+            return path.toString();
+        } else {
+            System.out.println("Error: No possible paths were found.");
+            return "";    //return an empty string as the path
+        }
+    }
+
+    private boolean findPathRecursive(Maze maze, int x, int y, boolean[][] visited, StringBuilder path) {
+        if (maze.isExit(x, y)) {
+            return true;
         }
 
-        while (x != targetX || y != targetY) {
-            // Move forward facing East
-            if (y < targetY && y + 1 < maze.getGrid()[x].length && !maze.isWall(x, y + 1)) {
-                path.append("F");
-                //debugging
-                System.out.println(path.toString());
-                y++;
+        visited[x][y] = true;
+
+        // Moving East
+        if (y + 1 < maze.getGrid()[x].length && !maze.isWall(x, y + 1) && !visited[x][y + 1]) {
+            path.append("F");
+            if (findPathRecursive(maze, x, y + 1, visited, path)) {
+                return true;
             }
-            // Move right facing East
-            else if (x < targetX && x + 1 < maze.getGrid().length && !maze.isWall(x + 1, y)) {
-                path.append("R");
-                //debugging
-                System.out.println(path.toString());
-                x++;
-            }
-            // Move left facing East
-            else if (x > targetX && x - 1 >= 0 && !maze.isWall(x - 1, y)) {
-                path.append("L");
-                 //debugging
-                System.out.println(path.toString());
-                x--;
-            }
+
+            path.deleteCharAt(path.length() - 1);
         }
 
-        //debugging 
-        System.out.println("Path to exit: " + path.toString());
-        
-        //return path as a string
-        return path.toString();
+        //Moving South
+        if (x + 1 < maze.getGrid().length && !maze.isWall(x + 1, y) && !visited[x + 1][y]) {
+            path.append("R");
+            if (findPathRecursive(maze, x + 1, y, visited, path)) {
+                return true;
+            }
+            path.deleteCharAt(path.length() - 1);
+        }
+
+        // Moving North
+        if (x - 1 >= 0 && !maze.isWall(x - 1, y) && !visited[x - 1][y]) {
+            path.append("L");
+            if (findPathRecursive(maze, x - 1, y, visited, path)) {
+                return true;
+            }
+            path.deleteCharAt(path.length() - 1);
+        }
+
+        visited[x][y] = false;
+        return false;
     }
 }
-
 class PathValidator {
     public boolean checkPath(Maze maze, String path) {
         int x = maze.getEntryX();
