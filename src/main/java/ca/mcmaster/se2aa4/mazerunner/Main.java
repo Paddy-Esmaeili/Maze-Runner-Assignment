@@ -11,34 +11,46 @@ import java.util.List;
 
 public class Main {
 
+   
     private static final Logger logger = LogManager.getLogger();
 
     public static void main(String[] args) {
         logger.info("** Starting Maze Runner");
 
         Options options = new Options();
+        
         options.addOption("i", true, "Path to the maze file");
+        options.addOption("p", true, "Validating user's input path");
 
         CommandLineParser parser = new DefaultParser();
         try {
             CommandLine cmd = parser.parse(options, args);
             String inputFile = cmd.getOptionValue("i");
+            String validInput = cmd.getOptionValue("p");
+
             if (inputFile == null) {
-                throw new IllegalArgumentException("Maze file path is required. Use -i <file_path>");
+                throw new IllegalArgumentException("Error: i flag was not detected");
             }
 
+            Maze maze = Maze.loadMazeFromFile(inputFile);
             logger.info("**** Reading the maze from file: {}", inputFile);
 
-            Maze maze = Maze.loadMazeFromFile(inputFile);
-            PathGenerator generator = new PathGenerator();
+            if (validInput != null) {
+                logger.info("**** Validating path");
+                PathValidator validator = new PathValidator();
+                if (validator.checkPath(maze, validInput)) {
+                    logger.info("correct path");
+                } else {
+                    logger.info("incorrect path.");
+                }
+            }
 
-            logger.info("**** Computing path");
-            String canonicalPath = generator.findPath(maze);
-            logger.info("Canonical Path: {}", canonicalPath);
+
 
         } catch (Exception e) {
             logger.error("An error occurred", e);
         }
+
         logger.info("** End of Maze Runner");
     }
 }
@@ -57,80 +69,42 @@ class Maze {
 
     public static Maze loadMazeFromFile(String inputFile) throws Exception {
         List<char[]> tempGrid = new ArrayList<>();
-        int gridWidth = -1;
-    
+
         try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
             String line;
-            boolean enteredMaze = false; 
-    
             while ((line = reader.readLine()) != null) {
-                line = line.stripTrailing(); 
-    
-                if (!enteredMaze && line.isEmpty()) {
-                    continue;
-                }
-    
-                if (!line.isEmpty()) {
-                    enteredMaze = true; 
-                }
-    
-                if (enteredMaze) {
-                    if (gridWidth == -1) {
-                        int firstHashIndex = line.indexOf('#');
-                        int lastHashIndex = line.lastIndexOf('#');
-                        if (firstHashIndex == -1 || lastHashIndex == -1) {
-                            throw new IllegalArgumentException("Illegal bordering");
-                        }
-                        gridWidth = lastHashIndex - firstHashIndex + 1;     
-                        line = line.substring(firstHashIndex, lastHashIndex + 1);
-                    }
-                    tempGrid.add(line.toCharArray());
-                }
+                tempGrid.add(line.toCharArray());
             }
         }
-    
+
         char[][] grid = tempGrid.toArray(new char[0][]);
-    
-        if (containsEmptySpace(grid[0]) || containsEmptySpace(grid[grid.length - 1])) {
-            throw new IllegalArgumentException("First and last rows of the maze cannot contain empty spaces.");
-        }
-    
         int entryX = -1, entryY = -1, exitX = -1, exitY = -1;
-    
+
+        //detect entry points
         for (int i = 0; i < grid.length; i++) {
-            if (grid[i][0] == ' ' || Character.isWhitespace(grid[i][0])) {
+            if (grid[i][0] == ' ') {
                 entryX = i;
                 entryY = 0;
+                break;
             }
         }
-
+        //detect exit points
         for (int i = 0; i < grid.length; i++) {
-            int cols = grid[i].length - 1;
-            char lastColumnChar = grid[i][cols];
-
-            if (lastColumnChar == ' ' || Character.isWhitespace(lastColumnChar)) {
+            if (grid[i][grid[i].length - 1] == ' ') {
                 exitX = i;
                 exitY = grid[i].length - 1;
+                break;
             }
         }
-        
-        if (entryX == -1 || entryY == -1) {
-            throw new IllegalArgumentException("Maze must have valid entry points.");
-        } 
-        if (exitX == -1 || exitY == -1){
-            throw new IllegalArgumentException("Maze must have valid exit points.");
-        }
-        
-        return new Maze(grid, entryX, entryY, exitX, exitY);
-    }
 
-    private static boolean containsEmptySpace(char[] row) {
-        for (char c : row) {
-            if (c == ' ') {
-                return true;
-            }
+        if (entryX == -1 || entryY == -1) {
+            throw new IllegalArgumentException("Maze must have a valid entry point on the left side.");
         }
-        return false;
+        if (exitX == -1 || exitY == -1) {
+            throw new IllegalArgumentException("Maze must have a valid exit point on the right side.");
+        }
+
+        return new Maze(grid, entryX, entryY, exitX, exitY);
     }
 
     public char[][] getGrid() {
@@ -153,16 +127,55 @@ class Maze {
         return exitY;
     }
 
-    public int getHeight() {
-        return grid.length;
-    }
-
-    public int getWidth() {
-        return grid[0].length;
-    }
-
     public boolean isWall(int x, int y) {
-        return x >= 0 && x < grid.length && y >= 0 && y < grid[x].length && grid[x][y] == '#';
+        return grid[x][y] == '#';
     }
-    
+
+    public boolean isExit(int x, int y) {
+        return x == exitX && y == exitY;
+    }
+}
+
+class PathValidator {
+    public boolean checkPath(Maze maze, String path) {
+        int x = maze.getEntryX();
+        int y = maze.getEntryY();
+
+        for (char move : path.toCharArray()) {
+            //The path cannot contain any characters other than F, R, and L
+            if (move != 'F' && move != 'R' && move != 'L') {
+                return false; 
+            }
+
+            // Move based on the user's input
+            switch (move) {
+                case 'F': // Move forward 
+                    if (y + 1 < maze.getGrid()[x].length && !maze.isWall(x, y + 1)) {
+                        y++;
+                    } else {
+                        return false; // Hits a wall
+                    }
+                    break;
+                case 'R': // Move right 
+                    if (x + 1 < maze.getGrid().length && !maze.isWall(x + 1, y)) {
+                        x++;
+                    } else {
+                        return false; // Hits a wall
+                    }
+                    break;
+                case 'L': // Move left 
+                    if (x - 1 >= 0 && !maze.isWall(x - 1, y)) {
+                        x--;
+                    } else {
+                        return false; // Hits a wall
+                    }
+                    break;
+                default:
+                    return false;   
+            }
+        }
+        
+        //return true if the path hits no walls
+        return true;
+    }
 }
