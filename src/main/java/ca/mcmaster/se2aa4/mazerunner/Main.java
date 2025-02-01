@@ -29,9 +29,7 @@ public class Main {
 
             PathGenerator generator = new RHRPathGenerator(maze);
             String canonicalPath = generator.findPath();
-            System.out.println(canonicalPath);
 
-            // Create a FactorizedPath object to generate the factorized form of the path
             FactorizedPath factorizedPath = new FactorizedPath(canonicalPath);
             String factorized = factorizedPath.factorizePath();
             System.out.println(factorized);
@@ -39,13 +37,13 @@ public class Main {
             if (validInput != null) {
                 PathChecker validator = new PathValidator();
                 if (validator.checkPath(maze, validInput)) {
-                    logger.info("correct path");
+                    System.out.println("correct path");
                 } else {
-                    logger.info("incorrect path");
+                    System.out.println("incorrect path");
                 }
             }
         } catch (Exception e) {
-            logger.error("An error occurred", e);
+            System.out.println("Sorry, an error occurred!");
         }
     }
 }
@@ -100,17 +98,15 @@ class Maze extends AbstractMaze {
             }
         }
         if (tempGrid.isEmpty()) {
-            throw new IllegalArgumentException("Error: Maze file is empty or unreadable.");
+            throw new IllegalArgumentException("Error: The inputted maze file is empty.");
         }
         return tempGrid.toArray(new char[0][]);
     }
 
     private void findEntryExit() {
+
+        // Check for entry and exit points in the first and last column of the maze. 
         for (int i = 0; i < grid.length; i++) {
-            System.out.println(Arrays.toString(grid[i]));  // Print each row of the grid
-        }
-        for (int i = 0; i < grid.length; i++) {
-            // Check for entry at the first column
             if (grid[i][0] == ' ' && entryX == -1) {
                 entryX = i;
                 entryY = 0;
@@ -120,12 +116,7 @@ class Maze extends AbstractMaze {
                 exitX = i;
                 exitY = grid[0].length - 1;
             }
-            System.out.println(exitX + "," + exitY);
         }
-
-    
-        System.out.println("Final Entry Point: (" + entryX + "," + entryY + ")");
-        System.out.println("Final Exit Point: (" + exitX + "," + exitY + ")");
     
         // Check if entry or exit was found
         if (entryX == -1) {
@@ -136,19 +127,21 @@ class Maze extends AbstractMaze {
         }
     }
 }
+
 interface PathGenerator {
     String findPath();
 }
+
 class RHRPathGenerator implements PathGenerator {
     private int x, y;
-    private String direction = "right";
+    private String direction = "right";     // Initializing the direction of the movement to East
     private final char[][] maze;
     public final StringBuilder path;
     private final Set<String> visited;
     private final int exitX, exitY;
 
     public RHRPathGenerator(AbstractMaze maze) {
-        this.maze = maze.getGrid();  // Use getGrid() to access the grid
+        this.maze = maze.getGrid();  
         this.x = maze.getEntryX();
         this.y = maze.getEntryY();
         this.exitX = maze.getExitX();
@@ -160,13 +153,15 @@ class RHRPathGenerator implements PathGenerator {
     public String findPath() {
         while (!isExit(x, y)) {
             String pos = x + "," + y;
-     
+
+            // Stuck in a loop
             if (visited.contains(pos) && wallOnRight() && wallOnFront() && wallOnLeft()) {
                 break; 
             }
 
             visited.add(pos);
 
+            // Implementing the right hand rule
             if (!wallOnRight()) {
                 turnRight();
                 if (!wallOnFront()) {  
@@ -178,7 +173,6 @@ class RHRPathGenerator implements PathGenerator {
                 turnLeft();
             }
         }
-        System.out.println(x + "," + y);
         return path.toString();
     }
 
@@ -193,7 +187,7 @@ class RHRPathGenerator implements PathGenerator {
             case "down" -> newX++;
         }
     
-        if (!isWall(newX, newY)) {  // Only move if it's not a wall
+        if (!isWall(newX, newY)) { 
             x = newX;
             y = newY;
             path.append("F");
@@ -292,8 +286,7 @@ class FactorizedPath {
                 count = 1;
             }
         }
-    
-        // Append the last group
+
         factorizedPath.append(count).append(path.charAt(path.length() - 1));
     
         return factorizedPath.toString();
@@ -306,6 +299,14 @@ interface PathChecker {
 
 class PathValidator implements PathChecker {
     public boolean checkPath(AbstractMaze maze, String path) {
+
+        // Convert to canonical form if the path is factorized
+        for (int i = 0; i < path.length(); i++) {
+            if (Character.isDigit(path.charAt(i))) {
+                path = deconstructFactorizedPath(path);
+            }
+        }
+
         int x = maze.getEntryX();
         int y = maze.getEntryY();
         String direction = "right";
@@ -320,7 +321,7 @@ class PathValidator implements PathChecker {
                         case "left" -> y--;
                         case "down" -> x++;
                     }
-                    break; // Added break
+                    break;
                 }
                 case 'R':
                     direction = switch (direction) {
@@ -330,7 +331,7 @@ class PathValidator implements PathChecker {
                         case "up" -> "right";
                         default -> direction;
                     };
-                    break; // Added break
+                    break;
                 case 'L':
                     direction = switch (direction) {
                         case "right" -> "up";
@@ -339,11 +340,30 @@ class PathValidator implements PathChecker {
                         case "down" -> "right";
                         default -> direction;
                     };
-                    break; // Added break
+                    break;
                 default:
                     return false;
             }
         }
         return x == maze.getExitX() && y == maze.getExitY();
+    }
+
+    private String deconstructFactorizedPath(String path) {
+        StringBuilder expandedPath = new StringBuilder();
+
+        for (int i = 0; i < path.length(); i++) {
+            char currentChar = path.charAt(i);
+            if (Character.isDigit(currentChar)) {
+                int repeatCount = Character.getNumericValue(currentChar);
+                if (i + 1 < path.length()) {
+                    char nextChar = path.charAt(i + 1);
+                    expandedPath.append(String.valueOf(nextChar).repeat(repeatCount));
+                    i++; 
+                }
+            } else {
+                expandedPath.append(currentChar);
+            }
+        }
+        return expandedPath.toString();
     }
 }
