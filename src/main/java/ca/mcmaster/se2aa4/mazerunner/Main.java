@@ -7,8 +7,6 @@ import java.io.*;
 import java.util.*;
 
 public class Main {
-    private static final Logger logger = LogManager.getLogger();
-
     public static void main(String[] args) {
 
         Options options = new Options();
@@ -49,7 +47,7 @@ public class Main {
 }
 abstract class AbstractMaze {
     protected char[][] grid;
-    protected int entryX = -1, entryY = -1, exitX = -1, exitY = -1;
+    protected int entryX = -1, entryY = -1, exitX = -1, exitY = -1;    // Initialize the entry and exit points to -1 (Invalid value)
 
     public AbstractMaze(char[][] grid) {
         this.grid = grid;
@@ -76,10 +74,10 @@ abstract class AbstractMaze {
     }
 
     public boolean isWall(int x, int y) {
-        if (x < 0 || y < 0 || x >= grid.length || y >= grid[0].length) {
+        if (x < 0 || y < 0 || x >= grid.length || y >= grid[0].length) {     // Check for boundry cases
             return true;  
         }
-        return grid[x][y] == '#';  
+        return grid[x][y] == '#';    // Check for actuall walls
     }
 }
 
@@ -89,7 +87,7 @@ class Maze extends AbstractMaze {
         findEntryExit();
     }
 
-    private static char[][] loadGrid(String inputFile) throws IOException {
+    private static char[][] loadGrid(String inputFile) throws IOException {       // Save maze to a an array
         List<char[]> tempGrid = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(inputFile))) {
             String line;
@@ -104,7 +102,6 @@ class Maze extends AbstractMaze {
     }
 
     private void findEntryExit() {
-
         // Check for entry and exit points in the first and last column of the maze. 
         for (int i = 0; i < grid.length; i++) {
             if (grid[i][0] == ' ' && entryX == -1) {
@@ -137,7 +134,7 @@ class RHRPathGenerator implements PathGenerator {
     private String direction = "right";     // Initializing the direction of the movement to East
     private final char[][] maze;
     public final StringBuilder path;
-    private final Set<String> visited;
+    private final Set<String> visited;     // Saving the coordinated of the visited cells
     private final int exitX, exitY;
 
     public RHRPathGenerator(AbstractMaze maze) {
@@ -173,7 +170,7 @@ class RHRPathGenerator implements PathGenerator {
                 turnLeft();
             }
         }
-        return path.toString();
+        return path.toString();    // Return the canonical path as a string
     }
 
 
@@ -348,6 +345,7 @@ class PathValidator implements PathChecker {
         return x == maze.getExitX() && y == maze.getExitY();
     }
 
+    // Expanding the inputted factorized path by the user
     private String deconstructFactorizedPath(String path) {
         StringBuilder expandedPath = new StringBuilder();
 
