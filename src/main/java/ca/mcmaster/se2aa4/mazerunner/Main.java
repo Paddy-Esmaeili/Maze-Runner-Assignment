@@ -273,6 +273,33 @@ class RHRPathGenerator implements PathGenerator {
     }
 }
 
+class FactorizedPath {
+    private String path;
+
+    public FactorizedPath(String path) {
+        this.path = path;
+    }
+
+    public String factorizePath() {
+        StringBuilder factorizedPath = new StringBuilder();
+        int count = 1;
+    
+        for (int i = 1; i < path.length(); i++) {
+            if (path.charAt(i) == path.charAt(i - 1)) {
+                count++;
+            } else {
+                factorizedPath.append(count).append(path.charAt(i - 1));
+                count = 1;
+            }
+        }
+    
+        // Append the last group
+        factorizedPath.append(count).append(path.charAt(path.length() - 1));
+    
+        return factorizedPath.toString();
+    }
+}
+
 interface PathChecker {
     boolean checkPath(AbstractMaze maze, String path);
 }
