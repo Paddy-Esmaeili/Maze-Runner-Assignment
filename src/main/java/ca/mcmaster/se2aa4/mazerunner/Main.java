@@ -177,11 +177,14 @@ class RHRPathGenerator implements PathGenerator {
     private void goForward() {
         int newX = x, newY = y;
     
-        switch (direction) {
-            case "right" -> newY++;
-            case "up" -> newX--;
-            case "left" -> newY--;
-            case "down" -> newX++;
+        if (direction.equals("right")) {
+            newY++;
+        } else if (direction.equals("up")) {
+            newX--;
+        } else if (direction.equals("left")) {
+            newY--;
+        } else if (direction.equals("down")) {
+            newX++;
         }
     
         if (!isWall(newX, newY)) { 
@@ -193,24 +196,28 @@ class RHRPathGenerator implements PathGenerator {
 
     private void turnRight() {
         path.append("R");
-        direction = switch (direction) {
-            case "right" -> "down";
-            case "down" -> "left";
-            case "left" -> "up";
-            case "up" -> "right";
-            default -> direction;
-        };
+        if (direction.equals("right")) {
+            direction = "down";
+        } else if (direction.equals("down")) {
+            direction = "left";
+        } else if (direction.equals("left")) {
+            direction = "up";
+        } else if (direction.equals("up")) {
+            direction = "right";
+        }
     }
 
     private void turnLeft() {
         path.append("L");
-        direction = switch (direction) {
-            case "right" -> "up";
-            case "up" -> "left";
-            case "left" -> "down";
-            case "down" -> "right";
-            default -> direction;
-        };
+        if (direction.equals("right")) {
+            direction = "up";
+        } else if (direction.equals("up")) {
+            direction = "left";
+        } else if (direction.equals("left")) {
+            direction = "down";
+        } else if (direction.equals("down")) {
+            direction = "right";
+        }
     }
 
     private boolean wallOnFront() {
@@ -226,33 +233,42 @@ class RHRPathGenerator implements PathGenerator {
     }
 
     private boolean isValidMove(int x, int y, String direction) {
-        return switch (direction) {
-            case "right" -> !isWall(x, y + 1);
-            case "up" -> !isWall(x - 1, y);
-            case "left" -> !isWall(x, y - 1);
-            case "down" -> !isWall(x + 1, y);
-            default -> false;
-        };
+        if (direction.equals("right")) {
+            return !isWall(x, y + 1);
+        } else if (direction.equals("up")) {
+            return !isWall(x - 1, y);
+        } else if (direction.equals("left")) {
+            return !isWall(x, y - 1);
+        } else if (direction.equals("down")) {
+            return !isWall(x + 1, y);
+        }
+        return false;
     }
 
     private String getRightDirection(String currentDirection) {
-        return switch (currentDirection) {
-            case "right" -> "down";
-            case "down" -> "left";
-            case "left" -> "up";
-            case "up" -> "right";
-            default -> currentDirection;
-        };
+        if (currentDirection.equals("right")) {
+            return "down";
+        } else if (currentDirection.equals("down")) {
+            return "left";
+        } else if (currentDirection.equals("left")) {
+            return "up";
+        } else if (currentDirection.equals("up")) {
+            return "right";
+        }
+        return currentDirection;
     }
 
     private String getLeftDirection(String currentDirection) {
-        return switch (currentDirection) {
-            case "right" -> "up";
-            case "up" -> "left";
-            case "left" -> "down";
-            case "down" -> "right";
-            default -> currentDirection;
-        };
+        if (currentDirection.equals("right")) {
+            return "up";
+        } else if (currentDirection.equals("up")) {
+            return "left";
+        } else if (currentDirection.equals("left")) {
+            return "down";
+        } else if (currentDirection.equals("down")) {
+            return "right";
+        }
+        return currentDirection;
     }
 
     public boolean isWall(int x, int y) {
@@ -309,37 +325,39 @@ class PathValidator implements PathChecker {
         String direction = "right";
 
         for (char move : path.toCharArray()) {
-            switch (move) {
-                case 'F': {
-                    if (maze.isWall(x, y)) return false;
-                    switch (direction) {
-                        case "right" -> y++;
-                        case "up" -> x--;
-                        case "left" -> y--;
-                        case "down" -> x++;
-                    }
-                    break;
+            if (move == 'F') {
+                if (maze.isWall(x, y)) return false;
+                if (direction.equals("right")) {
+                    y++;
+                } else if (direction.equals("up")) {
+                    x--;
+                } else if (direction.equals("left")) {
+                    y--;
+                } else if (direction.equals("down")) {
+                    x++;
                 }
-                case 'R':
-                    direction = switch (direction) {
-                        case "right" -> "down";
-                        case "down" -> "left";
-                        case "left" -> "up";
-                        case "up" -> "right";
-                        default -> direction;
-                    };
-                    break;
-                case 'L':
-                    direction = switch (direction) {
-                        case "right" -> "up";
-                        case "up" -> "left";
-                        case "left" -> "down";
-                        case "down" -> "right";
-                        default -> direction;
-                    };
-                    break;
-                default:
-                    return false;
+            } else if (move == 'R') {
+                if (direction.equals("right")) {
+                    direction = "down";
+                } else if (direction.equals("down")) {
+                    direction = "left";
+                } else if (direction.equals("left")) {
+                    direction = "up";
+                } else if (direction.equals("up")) {
+                    direction = "right";
+                }
+            } else if (move == 'L') {
+                if (direction.equals("right")) {
+                    direction = "up";
+                } else if (direction.equals("up")) {
+                    direction = "left";
+                } else if (direction.equals("left")) {
+                    direction = "down";
+                } else if (direction.equals("down")) {
+                    direction = "right";
+                }
+            } else {
+                return false;
             }
         }
         return x == maze.getExitX() && y == maze.getExitY();
