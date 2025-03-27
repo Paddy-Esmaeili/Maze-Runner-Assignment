@@ -26,15 +26,21 @@ class Maze extends AbstractMaze {
         return tempGrid.toArray(new char[0][]);
     }
 
-    private void findEntryExit() {
-        // Check for entry and exit points in the first and last column of the maze. 
+    private boolean isEmptySpace(char c) {
+        return c == ' ' || Character.isWhitespace(c) || c == '\u200B' || c == '\u00A0';
+    }
+
+    public void findEntryExit() {
+
         for (int i = 0; i < grid.length; i++) {
-            if (grid[i][0] == ' ' && entryX == -1) {
+
+            if ((isEmptySpace(grid[i][0])) && entryX == -1) {
                 entryX = i;
                 entryY = 0;
             }
 
-            if (grid[i][grid[0].length - 1] == ' '  && exitX == -1) {
+    
+            if ((isEmptySpace(grid[i][grid[0].length - 1])) && exitX == -1) {
                 exitX = i;
                 exitY = grid[0].length - 1;
             }
