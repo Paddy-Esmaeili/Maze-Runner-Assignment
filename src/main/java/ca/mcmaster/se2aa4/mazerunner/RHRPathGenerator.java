@@ -149,7 +149,12 @@ class RHRPathGenerator implements PathGenerator {
     }
 
     public boolean isWall(int x, int y) {
+
+        if (x < 0 || x >= maze.length || y < 0 || y >= maze[0].length) {
+            return true; 
+        }
         return maze[x][y] == '#';
+        
     }
 
     private boolean isExit(int x, int y) {
