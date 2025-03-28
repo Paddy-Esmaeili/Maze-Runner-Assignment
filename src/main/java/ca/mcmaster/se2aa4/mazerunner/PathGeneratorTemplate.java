@@ -14,6 +14,11 @@ abstract class PathGeneratorTemplate implements PathGenerator {
     private final Set<String> visited;     
     private final int exitX, exitY;
 
+    // Commands 
+    private final Command TURN_RIGHT;
+    private final Command TURN_LEFT;
+    private final Command GO_FORWARD;
+
     public PathGeneratorTemplate(AbstractMaze maze) {
         this.maze = maze.getGrid();
         this.x = maze.getEntryX();
@@ -22,6 +27,12 @@ abstract class PathGeneratorTemplate implements PathGenerator {
         this.exitY = maze.getExitY();
         this.path = new StringBuilder();
         this.visited = new HashSet<>();
+
+        // Instantiating the commands
+        this.TURN_RIGHT = new TurnRight(this);
+        this.TURN_LEFT = new TurnLeft(this);
+        this.GO_FORWARD = new GoForward(this);
+
     }
 
     public final String findPath(){
@@ -36,35 +47,20 @@ abstract class PathGeneratorTemplate implements PathGenerator {
     protected abstract void backTrack();
     protected abstract boolean isValidMove(int x, int y, String direction);
 
+
     protected void goForward() {
-        int newX = x, newY = y;
-    
-        if (direction.equals("right")) {
-            newY++;
-        } else if (direction.equals("up")) {
-            newX--;
-        } else if (direction.equals("left")) {
-            newY--;
-        } else if (direction.equals("down")) {
-            newX++;
-        }
-    
-        if (!isWall(newX, newY)) { 
-            x = newX;
-            y = newY;
-            path.append("F");
-        }
+       GO_FORWARD.execute();
     }
 
     protected void turnRight() {
-        path.append("R");
-        direction = getRightDirection(direction);
+        TURN_RIGHT.execute();
     }
 
     protected void turnLeft() {
-        path.append("L");
-        direction = getLeftDirection(direction);
+        TURN_LEFT.execute();
     }
+
+
 
     protected boolean wallOnFront() {
         return !isValidMove(x, y, direction);
@@ -89,23 +85,29 @@ abstract class PathGeneratorTemplate implements PathGenerator {
         return x == exitX && y == exitY;
     }
 
-    private String getRightDirection(String currentDirection) {
-        switch (currentDirection) {
-            case "right": return "down";
-            case "down": return "left";
-            case "left": return "up";
-            case "up": return "right";
-            default: return currentDirection;
+    protected String getRightDirection(String currentDirection) {
+        if (currentDirection.equals("right")) {
+            return "down";
+        } else if (currentDirection.equals("down")) {
+            return "left";
+        } else if (currentDirection.equals("left")) {
+            return "up";
+        } else if (currentDirection.equals("up")) {
+            return "right";
         }
+        return currentDirection;
     }
 
-    private String getLeftDirection(String currentDirection) {
-        switch (currentDirection) {
-            case "right": return "up";
-            case "up": return "left";
-            case "left": return "down";
-            case "down": return "right";
-            default: return currentDirection;
+    protected String getLeftDirection(String currentDirection) {
+        if (currentDirection.equals("right")) {
+            return "up";
+        } else if (currentDirection.equals("up")) {
+            return "left";
+        } else if (currentDirection.equals("left")) {
+            return "down";
+        } else if (currentDirection.equals("down")) {
+            return "right";
         }
+        return currentDirection;
     }
 }
