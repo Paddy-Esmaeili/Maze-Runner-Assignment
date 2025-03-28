@@ -25,7 +25,7 @@ class Main {
 
             Maze maze = new Maze(inputFile);
 
-            PathGenerator generator = new RHRPathGenerator(maze);
+            PathGeneratorTemplate generator = new RHRPathGenerator(maze);
             String canonicalPath = generator.findPath();
 
             FactorizedPath factorizedPath = new FactorizedPath(canonicalPath);
@@ -33,7 +33,18 @@ class Main {
             System.out.println(factorized);
 
             if (validInput != null) {
-                PathChecker validator = new PathValidator();
+                PathChecker validator;
+
+                // Check if the input file contains a maze or not
+                // This logic can be further modified if non-maze files are actually added
+
+                if (!inputFile.endsWith(".txt")) {
+                    validator = new ExternalPathValidatorAdapter(new ExternalPathValidator(inputFile));
+                } else {
+                    validator = new MazePathValidator();
+                }
+
+
                 if (validator.checkPath(maze, validInput)) {
                     System.out.println("correct path");
                 } else {
@@ -45,5 +56,3 @@ class Main {
         }
     }
 }
-
-

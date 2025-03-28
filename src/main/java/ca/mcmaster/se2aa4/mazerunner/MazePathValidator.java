@@ -6,7 +6,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.*;
 import java.util.*;
 
-class PathValidator implements PathChecker {
+class MazePathValidator implements PathChecker {
     public boolean checkPath(AbstractMaze maze, String path) {
 
         // Convert to canonical form if the path is factorized
